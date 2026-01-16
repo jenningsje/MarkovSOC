@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  # -------------------------------
+  # SF Enricher (SpiderFoot automation)
+  # -------------------------------
+  sf-enricher:
+    build:
+      context: .
+      dockerfile: Dockerfile.sf
+    container_name: sf-enricher
+    depends_on:
+      - opensearch
+      - spiderfoot
+    environment:
+      - SF_API_URL=http://spiderfoot:5001/api/v3
+      - SF_API_KEY=changeme123
+      - OS_HOST=opensearch
+      - OS_PORT=9200
+      - OS_INDEX=alerts
+    volumes:
+      - ./sf_enrich.py:/app/sf_enrich.py
+    command: >
+      bash -c "while true; do python /app/sf_enrich.py; sleep 60; done"
+
+  # -------------------------------
+  # OpenSearch Index Setup
+  # -------------------------------
+  opensearch-init:
+    image: opensearchproject/opensearch:2.11.1
+    container_name: opensearch-init
+    depends_on:
+      - opensearch
+    entrypoint: >
+      /bin/bash -c "
+      sleep 15;
+      curl -X PUT 'http://opensearch:9200/alerts';
+      curl -X PUT 'http://opensearch:9200/falco-logs';
+      curl -X PUT 'http://opensearch:9200/suricata-logs';
+      curl -X PUT 'http://opensearch:9200/zeek-logs';
+      "
+    restart: "no"

@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "objects": [
+    {
+      "type": "visualization",
+      "id": "alerts-table",
+      "attributes": {
+        "title": "Alerts Table",
+        "visState": "{\"type\":\"table\",\"params\":{\"perPage\":10},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"ip.keyword\",\"size\":10}}]}",
+        "uiStateJSON": "{}",
+        "description": "Table of enriched IP alerts",
+        "version": 1
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "top-ip-bar",
+      "attributes": {
+        "title": "Top IPs by Risk Score",
+        "visState": "{\"type\":\"bar\",\"params\":{\"type\":\"histogram\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"metric\",\"params\":{\"field\":\"reputation_score\",\"size\":10}}]}",
+        "uiStateJSON": "{}",
+        "description": "Top suspicious IPs",
+        "version": 1
+      }
+    },
+    {
+      "type": "visualization",
+      "id": "global-attacker-map",
+      "attributes": {
+        "title": "Global Attacker Map",
+        "visState": "{\"type\":\"region_map\",\"params\":{\"mapType\":\"world\",\"metrics\":[{\"id\":\"1\",\"type\":\"count\"}],\"bucket\":{\"field\":\"geo.location\"}}}",
+        "uiStateJSON": "{}",
+        "description": "Map showing attacker locations",
+        "version": 1
+      }
+    }
+  ],
+  "settings": {
+    "title": "MarkovSOC Dashboard",
+    "description": "Preloaded dashboard for enriched IP alerts, global map, and top IPs"
+  }
+}
+

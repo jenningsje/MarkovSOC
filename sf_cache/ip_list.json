@@ -1,0 +1,9 @@
+[
+  "8.8.8.8",        // Google DNS, test geo: US
+  "1.1.1.1",        // Cloudflare DNS, test geo: AU
+  "185.199.108.153", // GitHub IP, test geo: US
+  "142.250.190.78",  // Google IP, US
+  "51.15.0.1",       // OVH Cloud, FR
+  "203.0.113.45",    // Test IP, JP
+  "192.0.2.123"      // Example IP, US
+]

@@ -1,0 +1,109 @@
+version: '3.9'
+
+services:
+  # ------------------------------
+  # OpenSearch + Dashboards
+  # -------------------------------
+  opensearch:
+    image: opensearchproject/opensearch:2.11.1
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.11.1
+    container_name: dashboards
+    environment:
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - opensearch
+
+  # -------------------------------
+  # SpiderFoot + Enricher
+  # -------------------------------
+  spiderfoot:
+    image: spiderfoot/spiderfoot:4.2.2
+    container_name: spiderfoot
+    environment:
+      - SF_API_KEY=changeme123
+    ports:
+      - "5001:5001"
+
+  sf-enricher:
+    build:
+      context: .
+      dockerfile: Dockerfile.sf
+    container_name: sf-enricher
+    depends_on:
+      - opensearch
+      - spiderfoot
+    environment:
+      - SF_API_URL=http://spiderfoot:5001/api/v3
+      - SF_API_KEY=changeme123
+      - OS_HOST=opensearch
+      - OS_PORT=9200
+      - OS_INDEX=alerts
+    volumes:
+      - ./sf_enricher.py:/app/sf_enricher.py
+      - ./run_sf_cron.sh:/app/run_sf_cron.sh
+      - ./sf_cache:/app/sf_cache
+
+  # -------------------------------
+  # Falco (Container Runtime Security)
+  # -------------------------------
+  falco:
+    image: falcosecurity/falco:0.38.0
+    container_name: falco
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - /dev:/host/dev:ro
+      - /proc:/host/proc:ro
+      - /boot:/host/boot:ro
+      - /lib/modules:/host/lib/modules:ro
+      - /usr:/host/usr:ro
+
+  # -------------------------------
+  # Suricata (Network IDS)
+  # -------------------------------
+  suricata:
+    image: jasonish/suricata:7.1.0
+    container_name: suricata
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./suricata-rules:/etc/suricata/rules
+      - ./suricata-logs:/var/log/suricata
+
+  # -------------------------------
+  # Zeek (Network Traffic Monitoring)
+  # -------------------------------
+  zeek:
+    image: blacktop/zeek:4.4.1
+    container_name: zeek
+    network_mode: "host"
+    volumes:
+      - ./zeek-logs:/zeek-logs
+      - ./zeek-scripts:/usr/local/zeek/share/zeek/site
+
+volumes:
+  pgdata:
+  opensearch_data:
+  sf_cache:
+  suricata-logs:
+  zeek-logs:
